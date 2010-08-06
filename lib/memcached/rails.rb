@@ -34,6 +34,8 @@ class Memcached
     def logger=(logger)
       @logger = logger
     end
+    
+    alias :_orig_get :get
 
     # Wraps Memcached#get so that it doesn't raise. This has the side-effect of preventing you from
     # storing <tt>nil</tt> values.
@@ -46,6 +48,15 @@ class Memcached
     # :raw.
     def read(key, options = {})
       get(key, options[:raw])
+    end
+    
+    # support exist? for Rails 3 support.
+    # ActionController::Caching::Fragments#Fragment_exists? calls cache_store.exist?(key, options)
+    def exist?(key, options = {})
+      _orig_get(key, options)
+      true
+    rescue NotFound
+      false
     end
 
     # Wraps Memcached#cas so that it doesn't raise. Doesn't set anything if no value is present.
